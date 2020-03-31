@@ -30,10 +30,52 @@
       reader.onloadend = function () {
         // 取出base64代码
         var dataURL = reader.result;
+        
+		compress(dataURL, 800, 0.9).then((val) => {
+			document.getElementById("img").src = val
+		})
         // 赋值到图片上显示出来
-        document.getElementById("img").src = dataURL
+        // document.getElementById("img").src = dataURL
       };
     }
+    // 图片处理
+    function compress (base64String, w, quality) {
+      // console.log('base64', base64String);
+      var getMimeType = function (urlData) {
+        var arr = urlData.split(',');
+        var mime = arr[0].match(/:(.*?);/)[1];
+        return mime;
+      };
+      var newImage = new Image();
+      var imgWidth, imgHeight;
+      var promise = new Promise(resolve => newImage.onload = resolve);
+      newImage.src = base64String;
+      return promise.then(() => {
+        imgWidth = newImage.width;
+        imgHeight = newImage.height;
+        var canvas = document.createElement("canvas");
+        var ctx = canvas.getContext("2d");
+        if (Math.max(imgWidth, imgHeight) > w) {
+          if (imgWidth > imgHeight) {
+            canvas.width = w;
+            // canvas.height = w * imgHeight / imgWidth;
+            canvas.height = w * 3 / 4;
+          } else {
+            canvas.height = w;
+            canvas.width = w * 4 / 3;
+          }
+        } else {
+          canvas.width = imgWidth;
+          // canvas.height = imgHeight;
+          canvas.height = imgWidth * 3 / 4;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(newImage, 0, 0, canvas.width, canvas.height);
+        var base64 = canvas.toDataURL('image/jpeg', quality);
+        console.log('base64', base64)
+        return base64;
+      });
+    },
   </script>
 </body>
 </html>
